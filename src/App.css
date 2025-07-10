@@ -56,8 +56,12 @@ button:hover {
   background: #0b5ed7;
 }
 
+.table-wrapper {
+  overflow-x: visible;
+}
+
 table {
-  width: 100%;
+  min-width: 1200px;
   border-collapse: collapse;
   margin-top: 1rem;
   font-size: 0.95rem;
@@ -114,3 +118,18 @@ tbody tr:nth-child(even) {
   }
 }
 
+.ignored-table {
+  margin-top: 2rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.ignored-table th, .ignored-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.ignored-table th {
+  background-color: #f44336;
+  color: white;
+}
