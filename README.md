@@ -13,7 +13,7 @@ A lightweight React + TypeScript + Vite application that fetches product data fr
    ```bash
    git clone https://github.com/your-org/oo2csv-client.git
    cd oo2csv-client
-````
+   ```
 
 2. Install dependencies
 
