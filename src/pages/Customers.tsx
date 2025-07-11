@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 
 interface Kunde {
   customer_id: string;
+  salutation: string;
   firstname: string;
   lastname: string;
   street: string;
+  street_number: string;
   zip: string;
   city: string;
   country: string;
@@ -12,8 +14,6 @@ interface Kunde {
   phone2: string;
   phone3: string;
   email: string;
-  mail_confirmation: boolean;
-  birthdate: string;
   remark: string[];
   discount: number;
   deleted: boolean;
@@ -32,8 +32,8 @@ const Customers = () => {
 
   const exportCSV = () => {
     const header = [
-      'customer_id', 'firstname', 'lastname', 'street', 'zip', 'city', 'country',
-      'phone1', 'phone2', 'phone3', 'email', 'mail_confirmation', 'birthdate', 'remark', 'discount', 'deleted'
+      'customer_id', 'salutation', 'firstname', 'lastname', 'street', 'street_number', 'zip', 'city', 'country',
+      'phone1', 'phone2', 'phone3', 'email', 'remark', 'discount'
     ];
 
     const formatPhoneExport = (phone: string, country: string) => {
@@ -41,19 +41,31 @@ const Customers = () => {
       // Für Österreich (A) führen wir '++' ein, sonst Original
       return country === 'A' ? `++${phone}` : phone;
     };
-    // Helper to format remark array as single-quoted list
-    const formatRemark = (remark: string[]) => {
+
+    // remark as array
+    // const formatRemark = (remark: string[]) => {
+    //   if (!remark || remark.length === 0) return '';
+    //   const parts = remark.map(r => r.replace(/'/g, "''"));
+    //   return `['${parts.join("','")}']`;
+    // };
+
+    // remark with line break;
+    const formatRemarkFlat = (remark: string[]): string => {
       if (!remark || remark.length === 0) return '';
-      const parts = remark.map(r => r.replace(/'/g, "''"));
-      return `['${parts.join("','")}']`;
+      // Double-Quotes escapen für CSV-Quote-Konformität
+      const escaped = remark.map(r => r.replace(/"/g, '""').trim());
+      // Mit echtem Zeilenumbruch verbinden
+      return escaped.join('\n');
     };
 
-    const rows = kunden.map((k): string[] => [
 
+    const rows = kunden.map((k): string[] => [
       k.customer_id,
+      k.salutation,
       k.firstname,
       k.lastname,
       k.street,
+      k.street_number,
       k.zip,
       k.city,
       k.country,
@@ -61,35 +73,39 @@ const Customers = () => {
       formatPhoneExport(k.phone2, k.country),
       formatPhoneExport(k.phone3, k.country),
       k.email,
-      k.mail_confirmation ? '1' : '0',
-      k.birthdate,
-      formatRemark(k.remark),
+      formatRemarkFlat(k.remark),
       k.discount.toString(),
       k.deleted ? '1' : '0'
     ]);
 
-    // Escape fields with commas, quotes or newlines
-    const escapeField = (field: string) => {
-      // prefix BOM only on first field later
-      const str = field.replace(/"/g, '""');
-      if (/,|"|\n/.test(str)) {
-        return `"${str}"`;
-      }
-      return str;
+    /**
+     * Escape fields with commas, quotes or newlines
+     * by wrapping them in double quotes.
+     *
+     * @param {string} field The field to escape
+     * @returns {string} The escaped field
+     */
+    const escapeField = (field: string): string => {
+      const str = field.replace(/"/g, '""'); // Replace all double quotes with two double quotes
+      // If the string contains commas, quotes or newlines, wrap it in double quotes
+      return /,|"|\n/.test(str) ? `"${str}"` : str;
     };
 
-    // Build CSV text
-    const lines = rows.map(row => row.map(escapeField).join(','));
-    const csvBody = [header.map(escapeField).join(','), ...lines].join('\n');
-    // Add BOM
-    const csvContent = '\uFEFF' + csvBody;
+  // JOIN mit Semikolon
+  const lines = rows.map(r => r.map(escapeField).join(';'));
+  const csvBody = [
+    header.map(escapeField).join(';'),  // Header mit ;
+    ...lines
+  ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'kunden-export.csv';
-    link.click();
-  };
+  // BOM vorne dran
+  const csvContent = '\uFEFF' + csvBody;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'kunden-export.csv';
+  link.click();
+};
 
   return (
     <div className="container">
@@ -101,16 +117,18 @@ const Customers = () => {
         <table>
           <thead>
             <tr>
-              {['customer_id','firstname','lastname','street','zip','city','country','phone1','phone2','phone3','email','mail_confirmation','birthdate','remark','discount','deleted'].map(key => <th key={key}>{key}</th>)}
+              {['Nr.','Anrede','Vorname','Nachname','Straße','Haus-Nr.','PLZ','Ort','Land','Tel. priv. 1','Tel. priv. 2','Tel. Firma','E-Mail','Info','Rabatt'].map(key => <th key={key}>{key}</th>)}
             </tr>
           </thead>
           <tbody>
             {kunden.map((k, i) => (
               <tr key={i} className={k.deleted ? 'deleted' : ''}>
                 <td>{k.customer_id}</td>
+                <td>{k.salutation}</td>
                 <td>{k.firstname}</td>
                 <td>{k.lastname}</td>
                 <td>{k.street}</td>
+                <td>{k.street_number}</td>
                 <td>{k.zip}</td>
                 <td>{k.city}</td>
                 <td>{k.country}</td>
@@ -118,11 +136,8 @@ const Customers = () => {
                 <td>{k.phone2 || '-'}</td>
                 <td>{k.phone3 || '-'}</td>
                 <td>{k.email}</td>
-                <td>{k.mail_confirmation ? 'true' : 'false'}</td>
-                <td>{k.birthdate}</td>
-                <td><pre>{JSON.stringify(k.remark)}</pre></td>
+                <td>{k.remark}</td>
                 <td>{k.discount}</td>
-                <td>{k.deleted ? 'true' : 'false'}</td>
               </tr>
             ))}
           </tbody>
