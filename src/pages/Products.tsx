@@ -8,19 +8,21 @@ interface Produkt {
   name: string;
   color_code: string;
   color: string;
+  supplier_id: number;
   supplier: string;
   manufacturer: string;
   size: string;
-  size_range?: string;
   stock: number;
   index: number;
   real_ek: number;
   list_ek: number;
-  discount1: number;
-  discount2: number;
   list_vk: number;
   special_price: number | null;
   vat: number;
+  vpe: number;
+  warengruppeNr: string;
+  vkRabattMax: number | null;
+  kunde: string | null;
 }
 
 const App: React.FC = () => {
@@ -32,6 +34,32 @@ const App: React.FC = () => {
   const [sortAsc, setSortAsc] = useState(true);
   const [gesamtanzahl, setGesamtanzahl] = useState(0);
 
+  // Typ für das Mapping-Array
+  type CsvFieldMappingEntry = { key: keyof Produkt, label: string };
+
+  // Das Mapping-Array:
+  const csvFieldMapping: CsvFieldMappingEntry[] = [
+    { key: 'unique_id',        label: 'Identnummer' },
+    { key: 'product_id',       label: 'Artikel-Nr' },
+    { key: 'name',             label: 'Artikel-Name' },
+    { key: 'color_code',       label: 'Lief. Farb Nr.' },
+    { key: 'color',            label: 'Lief. Farb Name' },
+    { key: 'supplier_id',      label: 'Hpt. Lief. Nr' },
+    { key: 'supplier',         label: 'Hpt. Lief. Name' },
+    { key: 'manufacturer',     label: 'Hersteller' },
+    { key: 'size',             label: 'Groesse' },
+    { key: 'stock',            label: 'Bestand' },
+    { key: 'index',            label: 'Groessen Sort.' },
+    { key: 'real_ek',          label: 'Realer-EK Netto' },
+    { key: 'list_ek',          label: 'Listen-EK Netto' },
+    { key: 'list_vk',          label: 'VK Brutto' },
+    { key: 'special_price',    label: 'Sonderpreis Brutto' },
+    { key: 'vat',              label: 'MwSt' },
+    { key: 'vpe',              label: 'VPE' },
+    { key: 'warengruppeNr',    label: 'Warengruppen-Nr.' },
+    { key: 'vkRabattMax',      label: 'VK Rabatt Max' },
+    { key: 'kunde',            label: 'Kunde Nr.' }
+  ];
 
   // Daten vom Server laden
   const fetchData = (term = '') => {
@@ -55,11 +83,11 @@ const App: React.FC = () => {
             // 3. Wenn product_id gleich: nach index (Größensortierung)
             return a.index - b.index;
           });
-          const sortedWithSizeRange = sorted.map((item: { size_range: any; }) => ({
-            ...item,
-            size_range: item.size_range ?? ''
-          }));
-          setDaten(sortedWithSizeRange);             // sortierte Daten setzen
+          // const sortedWithSizeRange = sorted.map((item: { size_range: any; }) => ({
+          //   ...item,
+          //   size_range: item.size_range ?? ''
+          // }));
+          setDaten(sorted);          // sortierte Daten setzen
           setGesamtanzahl(data.total);   // Gesamtanzahl aus Server übernehmen
         })
         .catch(err => console.error("Fehler beim Abruf:", err))
@@ -83,62 +111,27 @@ const App: React.FC = () => {
   // Wenn keine Daten vorhanden sind, abbrechen
   if (!daten || daten.length === 0) return;
 
+  
   /**
    * Definiert die Spaltenüberschriften für die CSV-Datei.
    * Diese entsprechen den Eigenschaftsnamen im Produktobjekt.
    */
-  const header = [
-    'unique_id',      // Eindeutige ID des Eintrags (z. B. Varianten-ID)
-    'product_id',     // Modellcode oder Artikelcode
-    'name',           // Produktname
-    'color_code',     // Farbcode (z. B. "ch")
-    'color',          // Farbname (z. B. "chlorite green")
-    'supplier',       // Name des Lieferanten (aus supplier.csv)
-    'manufacturer',   // Herstellername (aus product-stocks.csv)
-    'real_ek',        // Effektiver Einkaufspreis (EK)
-    'list_ek',        // Listen-EK (aus CSV)
-    'discount1',      // Erster Rabatt
-    'discount2',      // Zweiter Rabatt
-    'list_vk',        // Listenverkaufspreis
-    'special_price',  // Sonderpreis (falls gepflegt)
-    'vat',            // Mehrwertsteuersatz (z. B. 0.19)
-    'size',           // Größenangabe (z. B. "185 cm")
-    'size_range',     // Größenlauf    
-    'stock',          // Lagerbestand
-    'index'           // Optionaler Sortierindex (derzeit immer 0)
-  ];
+  const header = csvFieldMapping.map(field => field.label);
 
-  /**
-   * Wandelt alle Produkteinträge (`daten`) in CSV-Zeilen um.
-   * Dabei werden alle Felder einzeln in Strings umgewandelt,
-   * leere oder null-Werte werden mit '' ersetzt.
-   */
-  const rows: string[] = daten.map(item => [
-    item.unique_id,
-    item.product_id,
-    item.name,
-    item.color_code,
-    item.color,
-    item.supplier?.toString() ?? '',         // Lieferant (optional)
-    item.manufacturer ?? '',                 // Hersteller
-    item.real_ek?.toString() ?? '',          // EK real
-    item.list_ek?.toString() ?? '',          // EK Liste
-    item.discount1?.toString() ?? '',        // Rabatt 1
-    item.discount2?.toString() ?? '',        // Rabatt 2
-    item.list_vk?.toString() ?? '',          // VK Liste
-    item.special_price?.toString() ?? '',    // Sonderpreis
-    item.vat?.toString() ?? '',              // MwSt
-    item.size ?? '',
-    item.size_range?.toString() ?? '',               
-    item.stock?.toString() ?? '',            // Bestand
-    item.index?.toString() ?? ''             // Index (falls vorhanden)
-  ].join(',')); // Spalten durch Kommas trennen (CSV = comma-separated values)
+  // Rows
+  const rows: string[] = daten.map(item =>
+    csvFieldMapping.map(field => {
+      // Value holen, korrekt als String ausgeben
+      const value = item[field.key as keyof Produkt];
+      return value !== null && value !== undefined ? value.toString() : '';
+    }).join(';') // Achtung: Hier das Semikolon!
+  );
 
   /**
    * Kombiniert die Kopfzeile mit den Datenzeilen.
    * Jede Zeile wird durch einen Zeilenumbruch getrennt.
    */
-  const csvContent = [header.join(','), ...rows].join('\n');
+  const csvContent = [header.join(';'), ...rows].join('\n');
 
   /**
    * Erstellt ein Blob (eine Datei im Speicher) mit dem CSV-Inhalt.
@@ -210,39 +203,24 @@ const App: React.FC = () => {
         <div className="table-wrapper">
         <table>
           <thead>
-            <tr>
-              {Object.keys(daten[0]).map(key => (
-                <th key={key} onClick={() => handleSort(key)}>{key}</th>
+          <tr>
+            {csvFieldMapping.map(field => (
+              <th key={field.key} onClick={() => handleSort(field.key)}>
+                {field.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {daten.map((item, index) => (
+            <tr key={index}>
+              {csvFieldMapping.map((field, i) => (
+                <td key={i}>{item[field.key] ?? '-'}</td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {daten.map((item, index) => {
-              const next = daten[index + 1];
-              const isLastOfColor = !next || next.color !== item.color;
-              return (
-                <tr
-                  key={index}
-                  className={item.stock < 1 ? 'text-gray-400' : ''}
-                  style={{
-                    borderBottom: isLastOfColor ? '2px solid black' : '1px solid #ccc'
-                  }}
-                >
-                  {Object.entries(item).map(([key, value], i) => (
-                    <td key={i}>
-                      {Array.isArray(value) ? (
-                        key === 'sizes'
-                          ? value.map((v, j) => <div key={j}>{v.size} ({v.stock})</div>)
-                          : value.map((v, j) => <div key={j}>{JSON.stringify(v)}</div>)
-                      ) : (
-                        value ?? '-'
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
+          ))}
+        </tbody>
+
         </table>
         </div>
       )}
