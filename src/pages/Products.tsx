@@ -166,7 +166,7 @@ const App: React.FC = () => {
 
   return (
     <div className="container">
-      <h3><center>OO-Daten vom<span> 17.07.2025</span></center></h3>
+      <h3><center>OO-Daten vom<span> 18.07.2025</span></center></h3>
       <p>
         (<i>[server/data/] products.csv | product-stocks.csv | product-sizes.csv</i>) –
         generiert in <code>DC02/adverics-csv-export.php</code> – gespeichert in <code>/csv_export_adverics/</code>

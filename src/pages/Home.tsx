@@ -11,6 +11,7 @@ const Home: React.FC = () => {
       <div className="button-group">
         <button onClick={() => navigate('/products')}>Export Products</button>
         <button onClick={() => navigate('/customers')}>Export Customers</button>
+        <button onClick={() => navigate('/groups')}>Export Warengruppen</button>
       </div>
     </div>
   );
