@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Products from './pages/Products';
 import Customers from './pages/Customers';
 import Groups from './pages/Groups';
+import Orders from './pages/Orders';
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/products" element={<Products />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/groups" element={<Groups />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>
   );

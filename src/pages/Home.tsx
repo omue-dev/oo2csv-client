@@ -12,6 +12,7 @@ const Home: React.FC = () => {
         <button onClick={() => navigate('/products')}>Export Products</button>
         <button onClick={() => navigate('/customers')}>Export Customers</button>
         <button onClick={() => navigate('/groups')}>Export Warengruppen</button>
+        <button onClick={() => navigate('/orders')}>Products and Orders</button>
       </div>
     </div>
   );
