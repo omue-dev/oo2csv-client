@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import '../App.css';
+import { FixedSizeList as List } from 'react-window';
+import './Orders.css';
 
 // Interface für ein Order-Produkt
 interface OrderProduct {
@@ -33,31 +35,37 @@ interface OrderProduct {
     order_discounts_second: number | null;
 }
 
-// Spalten-Definition (wie csvFieldMapping)
+// Feste Spaltenbreiten, passen! (Passe ggf. an)
 const csvFieldMapping = [
-  { key: 'unique_id',           label: 'Scancode' },
-  { key: 'product_id',          label: 'Artikel-Nr' },
-  { key: 'name',                label: 'Artikel-Name' },
-  { key: 'color_code',          label: 'Farbcode' },
-  { key: 'color',               label: 'Farbe' },
-  { key: 'size',                label: 'Größe' },
-  { key: 'index',               label: 'Sort.' },
-  { key: 'stock',               label: 'Bestandsmenge' },
-  { key: 'supplier',            label: 'Lieferant' },
-  { key: 'manufacturer',        label: 'Hersteller' },
-  { key: 'real_ek',             label: 'Realer EK' },
-  { key: 'list_ek',             label: 'Listen-EK' },
-  { key: 'list_vk',             label: 'VK' },
-  { key: 'special_price',       label: 'Sonderpreis' },
-  { key: 'vkRabattMax',         label: 'VK-Rabatt Max' },
-  { key: 'kunde',               label: 'Kunden-Nr.' },
-  { key: 'order_nr',            label: 'Bestell-Nr..' },
-  { key: 'order_date',          label: 'Bestelldatum' },
-  { key: 'delivery_date',       label: 'Lieferdatum' },
-  { key: 'order_quantity',      label: 'Bestellmenge' },
-  { key: 'order_discounts_first', label: 'Rabatt 1' },
-  { key: 'order_discounts_second', label: 'Rabatt 2' }
+  { key: 'unique_id',           label: 'EAN/Scancode',    width: 110 },
+  { key: 'product_id',          label: 'Artikel-Nr',      width: 110 },
+  { key: 'name',                label: 'Artikel-Name',    width: 180 },
+  { key: 'color_code',          label: 'Lief. Farb Nr.',  width: 110 },
+  { key: 'color',               label: 'Lief. Farb Name', width: 130 },
+  { key: 'supplier_id',         label: 'Hpt. Lief. Nr',   width: 90 },
+  { key: 'supplier',            label: 'Lieferant',       width: 120 },
+  { key: 'manufacturer',        label: 'Marke',           width: 120 },
+  { key: 'size',                label: 'Groesse',         width: 80 },
+  { key: 'stock',               label: 'Bestand',         width: 90 },
+  { key: 'index',               label: 'Groessen Sort.',  width: 110 },
+  { key: 'real_ek',             label: 'Netto EK',        width: 100 },
+  { key: 'list_ek',             label: 'EK',              width: 90 },
+  { key: 'list_vk',             label: 'Vis VK',          width: 90 },
+  { key: 'special_price',       label: 'VK = VIS VK wenn leer', width: 150 },
+  { key: 'vat',                 label: 'MwSt',            width: 60 },
+  { key: 'vpe',                 label: 'VPE',             width: 60 },
+  { key: 'warengruppeNr',       label: 'Warengruppen-Nr.',width: 120 },
+  { key: 'vkRabattMax',         label: 'Rabattspere',     width: 110 },
+  { key: 'kunde',               label: 'Kunde Nr.',       width: 100 },
+  { key: 'order_nr',            label: 'Bestell-Nr..',    width: 120 },
+  { key: 'order_quantity',      label: 'Bestellmenge',    width: 110 },
+  { key: 'order_date',          label: 'Bestelldatum',    width: 110 },
+  { key: 'delivery_date',       label: 'Lieferdatum',     width: 110 },
+  { key: 'order_discounts_first', label: 'Rabatt 1',      width: 90 },
+  { key: 'order_discounts_second', label: 'Rabatt 2',     width: 90 }
 ];
+
+const totalWidth = csvFieldMapping.reduce((sum, f) => sum + (f.width || 120), 0);
 
 const Orders: React.FC = () => {
   const [daten, setDaten] = useState<OrderProduct[]>([]);
@@ -179,27 +187,83 @@ const Orders: React.FC = () => {
       ) : daten.length === 0 ? (
         <p>Keine Daten gefunden.</p>
       ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                {csvFieldMapping.map(f => (
-                  <th key={f.key} onClick={() => handleSort(f.key)}>
-                    {f.label} {sortColumn === f.key ? (sortAsc ? '▲' : '▼') : ''}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {daten.map((item, idx) => (
-                <tr key={item.unique_id || idx}>
-                  {csvFieldMapping.map((f, i) => (
-                    <td key={i}>{(item as any)[f.key] ?? '-'}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div
+  className="table-virtual-container"
+  style={{
+    overflowX: 'auto',
+    width: '100%',
+    maxHeight: 600, // max Gesamthöhe für den gesamten Tabellenbereich
+    borderRadius: '8px'
+  }}
+>
+  <table style={{ minWidth: totalWidth, width: totalWidth, tableLayout: 'fixed' }}>
+    <thead>
+      <tr>
+        {csvFieldMapping.map(f => (
+          <th
+            key={f.key}
+            style={{ width: f.width, minWidth: f.width, maxWidth: f.width }}
+            onClick={() => handleSort(f.key)}
+          >
+            {f.label} {sortColumn === f.key ? (sortAsc ? '▲' : '▼') : ''}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  </table>
+  <div
+    style={{
+      height: 550,            // 600px List + ca. 38px Header => ca. 638px gesamt
+      minWidth: totalWidth,
+      width: totalWidth,
+      overflowX: 'visible',
+      overflowY: 'auto'
+    }}
+  >
+    <List
+      height={550}
+      itemCount={daten.length}
+      itemSize={36}
+      width={totalWidth}
+      style={{
+        overflowX: 'visible',
+        overflowY: 'auto'
+      }}
+    >
+              {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                const item = daten[index];
+                return (
+                  <div
+                    key={item.unique_id || index}
+                    style={{
+                      ...style,
+                      display: 'flex',
+                      width: totalWidth,
+                      borderBottom: '1px solid #eee',
+                      background: index % 2 ? "#f9f9f9" : "#fff"
+                    }}
+                  >
+                    {csvFieldMapping.map((f, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: f.width,
+                          minWidth: f.width,
+                          maxWidth: f.width,
+                          padding: '4px 8px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {(item as any)[f.key] ?? '-'}
+                      </div>
+                    ))}
+                  </div>
+                );
+              }}
+            </List>
+          </div>
         </div>
       )}
     </div>

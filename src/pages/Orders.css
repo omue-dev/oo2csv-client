@@ -1,0 +1,123 @@
+/* Orders.css */
+
+.table-virtual-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  max-height: 700px; /* Muss <= Höhe von Header + List sein! */
+  background: #f8fafc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px 0 #1e293b12;
+  border: 1px solid #e2e8f0;
+}
+
+.table-virtual-container table {
+    overflow-x: visible !important;
+  overflow-y: auto !important;
+  min-width: 1500px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.table-virtual-container th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 8px 8px;
+  text-align: left;
+  height: 38px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.table-virtual-container th:hover {
+  background: #e0e7ef;
+}
+
+.table-virtual-container .ReactVirtualized__Grid {
+  outline: none;
+}
+
+.table-virtual-container div[role="row"] {
+  /* style for virtualized rows if you want to select by role */
+}
+
+.table-virtual-container > div > div {
+  /* Virtuelle Zeilen */
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-virtual-container > div > div:nth-child(even) {
+  background: #f8fafc;
+}
+
+.table-virtual-container > div > div:nth-child(odd) {
+  background: #fff;
+}
+
+.table-virtual-container > div > div:hover {
+  background: #e0e7ef;
+}
+
+.table-virtual-container div[style*="display: flex"] > div {
+  /* Spalten-Zellen */
+  border-right: 1px solid #e2e8f0;
+  font-size: 15px;
+  color: #22223b;
+  box-sizing: border-box;
+}
+.table-virtual-container div[style*="display: flex"] > div:last-child {
+  border-right: none;
+}
+
+.container {
+  max-width: 98vw;
+}
+
+.search {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.export {
+  margin-bottom: 18px;
+  margin-top: 6px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 6px;
+  border: none;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.export:hover {
+  background: #1742a4;
+}
+
+.loading-bar-container {
+  width: 200px;
+  margin: 16px auto;
+}
+.loading-bar {
+  height: 6px;
+  width: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #0ea5e9 100%);
+  border-radius: 5px;
+  animation: loadingBar 1.2s linear infinite;
+}
+@keyframes loadingBar {
+  0% { opacity: 0.2; width: 0; }
+  40% { opacity: 1; width: 40%; }
+  70% { opacity: 0.7; width: 85%; }
+  100% { opacity: 0.1; width: 100%; }
+}
