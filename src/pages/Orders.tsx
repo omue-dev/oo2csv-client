@@ -57,7 +57,7 @@ const csvFieldMapping = [
   { key: 'warengruppeNr',       label: 'Warengruppen-Nr.',width: 120 },
   { key: 'vkRabattMax',         label: 'Rabattspere',     width: 110 },
   { key: 'kunde',               label: 'Kunde Nr.',       width: 100 },
-  { key: 'order_nr',            label: 'Bestell-Nr..',    width: 120 },
+  { key: 'order_nr',            label: 'Bestell-Nr.',    width: 120 },
   { key: 'order_quantity',      label: 'Bestellmenge',    width: 110 },
   { key: 'order_date',          label: 'Bestelldatum',    width: 110 },
   { key: 'delivery_date',       label: 'Lieferdatum',     width: 110 },
